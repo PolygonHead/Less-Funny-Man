@@ -5,7 +5,7 @@ using UnityEngine;
 public class Controller : MonoBehaviour
 {
     public Transform characterCamera;
-    public Transform funnyMan;
+    public Transform spinObject;
     public CharacterController controller;
     public Transform playerCenter;
     
@@ -24,7 +24,9 @@ public class Controller : MonoBehaviour
     public float gasDepletionRate = 1 / 1000;
     public RectTransform sliderAmount;
     private float deltaYRotation = 0f;
-    [SerializeField] private float movementSpeed = 10f; 
+    [SerializeField] private float movementSpeed = 100f; 
+    [SerializeField] private float flightSpeed = 50f; 
+
     private float cameraDistance = 17.5f;
     private float desiredCameraDistance = -17.5f;
 
@@ -62,7 +64,7 @@ public class Controller : MonoBehaviour
     void HandleCamera(){
         float mouseX = Input.GetAxis("Mouse X");
         float mouseY = Input.GetAxis("Mouse Y");
-        deltaYRotation = Mathf.Clamp(deltaYRotation + mouseY * mouseSensitivity, -70f, 70f);
+        deltaYRotation = Mathf.Clamp(deltaYRotation - mouseY * mouseSensitivity, -70f, 70f);
         playerCenter.localRotation = Quaternion.Euler(deltaYRotation, 0, 0);
         transform.Rotate(transform.up * mouseX * mouseSensitivity);
 
@@ -111,8 +113,8 @@ public class Controller : MonoBehaviour
             layerMask = ~layerMask;
 
             RaycastHit hit; // Do a raycast to make sure that the player is not on the ground
-            Ray ray = new Ray(funnyMan.position, -transform.up);
-            Debug.DrawRay(funnyMan.position, -transform.up * 5, Color.green);
+            Ray ray = new Ray(spinObject.position, -transform.up);
+            Debug.DrawRay(spinObject.position, -transform.up * 5, Color.green);
             // if (Physics.Raycast(camera.transform.position, transform.TransformDirection(Vector3.forward), out hit, Mathf.Infinity, layerMask))
             if (!Physics.Raycast(ray, out hit, 5, layerMask))
             {
@@ -126,13 +128,15 @@ public class Controller : MonoBehaviour
             startSoundPlayed = true;
         }
 
-        funnyMan.Rotate(0, spinSpeed, 0);
+        spinObject.Rotate(0, 0, spinSpeed);
         Vector3 velocity = new Vector3(
-            xMove, spinSpeed / 100, zMove
+            (xMove) * movementSpeed, 
+            (spinSpeed / 100) * flightSpeed, 
+            (zMove) * movementSpeed
         );
 
         velocity = transform.TransformDirection(velocity); // Change movement direction from world space to local.
-        controller.Move(velocity * Time.deltaTime * movementSpeed);    
+        controller.Move(velocity * Time.deltaTime);    
 
         HandleGas();
     }
